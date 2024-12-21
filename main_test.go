@@ -3,9 +3,11 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/net/html"
 )
 
 func TestWebServer(t *testing.T) {
@@ -29,10 +31,37 @@ func TestWebServer(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Errorf("Ожидался код %d, но получен %d", http.StatusOK, w.Code)
 	}
-
-	// Проверяем содержимое ответа (HTML-код)
-	expected := "" // Ожидаемое содержимое
-	if w.Body.String() != expected {
-		t.Errorf("Ожидался ответ %q, но получен %q", expected, w.Body.String())
+	body := w.Body.String()
+	title, err := extractTitle(body)
+	if err != nil {
+		t.Fatalf("Ошибка извлечения <title>: %v", err)
 	}
+	expectedTitle := "Test" // Укажите ожидаемое значение
+	if title != expectedTitle {
+		t.Errorf("Ожидался <title> %q, но получен %q", expectedTitle, title)
+	}
+}
+
+// Функция для извлечения <title> из HTML
+func extractTitle(htmlContent string) (string, error) {
+	doc, err := html.Parse(strings.NewReader(htmlContent))
+	if err != nil {
+		return "", err
+	}
+
+	// Рекурсивный поиск <title>
+	var findTitle func(*html.Node) string
+	findTitle = func(n *html.Node) string {
+		if n.Type == html.ElementNode && n.Data == "title" && n.FirstChild != nil {
+			return n.FirstChild.Data
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			if title := findTitle(c); title != "" {
+				return title
+			}
+		}
+		return ""
+	}
+
+	return findTitle(doc), nil
 }
