@@ -5,6 +5,10 @@ import (
 )
 
 func main() {
+	webServer()
+}
+
+func webServer() error {
 	//new gin-gonic
 	r := gin.Default()
 
@@ -12,9 +16,13 @@ func main() {
 
 	r.GET("/", handlerIndex)
 
-	r.Run()
-
+	err := r.Run()
+	if err != nil {
+		return err
+	}
+	return nil
 }
+
 func handlerIndex(c *gin.Context) {
 	c.HTML(200, "index.html", nil)
 }
