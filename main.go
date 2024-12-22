@@ -8,12 +8,11 @@ func main() {
 	webServer()
 }
 
-// fjsj
 func webServer() error {
 	//new gin-gonic
 	r := gin.Default()
 
-	r.LoadHTMLGlob("HTML/*.html")
+	r.LoadHTMLGlob("index.html")
 
 	r.GET("/", handlerIndex)
 
